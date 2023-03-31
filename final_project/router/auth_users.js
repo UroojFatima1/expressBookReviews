@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 let books = require("./booksdb.js");
 const regd_users = express.Router();
 
-let users = [];
+let users = [{"username":"Urooj","password":"123"}];
 
 const isValid = (username)=>{ //returns boolean
 //write code to check is the username is valid
@@ -50,14 +50,32 @@ regd_users.post("/login", (req,res) => {
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
   //Write your code here
-  const username=req.body.username;
-  const password=req.body.password;
-  
-  
+  const isbn = req.params.isbn;
+  const review = req.query.review;
+  const username = req.session.authorization.username;
+  const book=books[isbn];
+  if(book){
+     if (book.reviews[username] && book.review[username].value!=review){
+         book.reviews.username=review;
+     }
+     else{book.reviews[username]=review;}
+     return res.status(208).send(`Review book with isbn ${isbn} addeed/updated.`);
+    }
+    else{
+        return res.status(408).send(` ${isbn} unavailable.`);
+    }
   
   return res.status(300).json({message: "Yet to be implemented"});
 });
-
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+    const isbn = req.params.isbn;
+    const username = req.session.authorization.username;
+    const book=books[isbn];
+    if (book && book.reviews[username]){
+        delete book.reviews[username];
+        return res.status(208).send(`Review of user ${username} for book with isbn ${isbn} deleted.`);}
+        return res.status(300).send("To be implemented");
+});
 module.exports.authenticated = regd_users;
 module.exports.isValid = isValid;
 module.exports.users = users;
